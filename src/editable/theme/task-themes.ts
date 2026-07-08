@@ -2,23 +2,24 @@ import type { CSSProperties } from 'react'
 import type { TaskKey } from '@/lib/site-config'
 
 /*
-  Yelp-style task surfaces.
+  Ovo-protocol reference: one shared visual language across every task
+  surface (--tk-* tokens). Only the kicker/note copy varies per task; the
+  palette + typography come from the reference (white surfaces, dark #050b1a
+  contrast bands, saturated blue #2563eb accent, Space Grotesk + IBM Plex
+  Sans + IBM Plex Mono).
 
-  Every task (archive + detail) now shares one cohesive premium identity:
-  clean white surfaces, the signature Yelp red accent, hairline gray borders
-  and a single crisp sans-serif — exactly like Yelp. Per-task copy (kicker /
-  note) still varies so each section keeps a little voice, but the visual
-  language is unified. Tokens are delivered via CSS variables (`--tk-*`).
+  Public-facing tasks (pdf) center the Reference Library. The profile task
+  key is kept for internal routing but is NEVER surfaced publicly — its
+  kicker/note copy is only used on the direct-URL Contributor detail page.
 */
 
 export type TaskTheme = {
-  /** short flavour word shown as an eyebrow kicker */
   kicker: string
-  /** one-line mood note for the page intro */
   note: string
   dark: boolean
   fontDisplay: string
   fontBody: string
+  fontMono: string
   bg: string
   surface: string
   raised: string
@@ -32,41 +33,72 @@ export type TaskTheme = {
   radius: string
 }
 
-const YELP_FONT = "'Inter', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+const FONT_DISPLAY = "'Space Grotesk', Arial, system-ui, sans-serif"
+const FONT_BODY = "'IBM Plex Sans', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+const FONT_MONO = "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
 
-// Shared Yelp palette — every task inherits this; only kicker/note differ.
 const base = {
   dark: false,
-  fontDisplay: YELP_FONT,
-  fontBody: YELP_FONT,
-  bg: '#ffffff',
-  surface: '#ffffff',
-  raised: '#f7f7f7',
-  text: '#1a1a1a',
-  muted: '#6b6b6b',
-  line: '#e6e6e6',
-  accent: '#d32323',
-  accentSoft: '#fdecec',
-  onAccent: '#ffffff',
-  glow: 'rgba(211,35,35,0.06)',
-  radius: '0.75rem',
+  fontDisplay: FONT_DISPLAY,
+  fontBody: FONT_BODY,
+  fontMono: FONT_MONO,
+  bg: '#F2EAE0',
+  surface: '#FFFFFF',
+  raised: '#FBF6EF',
+  text: '#2A2540',
+  muted: '#6B647A',
+  line: '#E6DCCF',
+  accent: '#9B8EC7',
+  accentSoft: 'rgba(189,166,206,0.30)',
+  onAccent: '#FFFFFF',
+  glow: 'rgba(180,211,217,0.45)',
+  radius: '20px',
 } satisfies Omit<TaskTheme, 'kicker' | 'note'>
 
 export const taskThemes: Record<TaskKey, TaskTheme> = {
-  article: { ...base, kicker: 'Articles', note: 'In-depth reads, guides and stories worth your time.' },
-  listing: { ...base, kicker: 'Businesses', note: 'Find, compare and connect with local businesses.' },
-  classified: { ...base, kicker: 'Marketplace', note: 'Fresh offers and listings, ready to act on.' },
-  image: { ...base, kicker: 'Photos', note: 'A visual feed of standout images and galleries.' },
-  sbm: { ...base, kicker: 'Bookmarks', note: 'Curated resources and links worth saving.' },
-  pdf: { ...base, kicker: 'Documents', note: 'Downloadable guides, reports and references.' },
-  profile: { ...base, kicker: 'People', note: 'Discover creators, businesses and profiles.' },
+  article: {
+    ...base,
+    kicker: 'Field notes',
+    note: 'Long-form context for the reference library.',
+  },
+  listing: {
+    ...base,
+    kicker: 'Directory',
+    note: 'Sources and destinations worth knowing.',
+  },
+  classified: {
+    ...base,
+    kicker: 'Updates',
+    note: 'Time-sensitive announcements from the archive.',
+  },
+  image: {
+    ...base,
+    kicker: 'Visuals',
+    note: 'A visual index of standout material.',
+  },
+  sbm: {
+    ...base,
+    kicker: 'Collections',
+    note: 'Curated resource shelves.',
+  },
+  // Public-facing task: the Reference Library.
+  pdf: {
+    ...base,
+    kicker: 'Reference Library',
+    note: 'Cited references, guides, and reports built for calm reading.',
+  },
+  // Contributor: label appears ONLY on the direct-URL profile detail page.
+  profile: {
+    ...base,
+    kicker: 'Contributor',
+    note: 'The person or team behind these reference materials.',
+  },
 }
 
 export function getTaskTheme(task: TaskKey): TaskTheme {
-  return taskThemes[task] || taskThemes.article
+  return taskThemes[task] || taskThemes.pdf
 }
 
-/** All `--tk-*` tokens + font overrides for a task surface, ready for `style`. */
 export function taskThemeStyle(task: TaskKey): CSSProperties {
   const t = getTaskTheme(task)
   return {
@@ -81,12 +113,11 @@ export function taskThemeStyle(task: TaskKey): CSSProperties {
     '--tk-on-accent': t.onAccent,
     '--tk-glow': t.glow,
     '--tk-radius': t.radius,
-    // Re-point the shared article-body accent vars so post HTML (headings,
-    // links) inherits this task's accent instead of the global site accent.
     '--slot4-accent': t.accent,
     '--slot4-accent-fill': t.accent,
     '--editable-font-display': t.fontDisplay,
     '--editable-font-body': t.fontBody,
+    '--editable-font-mono': t.fontMono,
     fontFamily: t.fontBody,
   } as CSSProperties
 }
