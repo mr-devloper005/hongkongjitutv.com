@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { buildPageMetadata } from '@/lib/seo'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
+import { EditableReveal } from '@/editable/shell/EditableReveal'
 import { EditableLocalLoginForm } from '@/editable/components/EditableLocalAuthForms'
 import { pagesContent } from '@/editable/content/pages.content'
+import { editableDesignContract as dc } from '@/editable/layouts/design-contract'
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({ path: '/login', title: 'Login', description: pagesContent.auth.login.metadataDescription })
@@ -12,18 +14,20 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function LoginPage() {
   return (
     <EditableSiteShell>
-      <main className="bg-[var(--slot4-panel-bg)] text-[var(--slot4-page-text)]">
-        <section className="mx-auto grid min-h-[calc(100vh-12rem)] max-w-[var(--editable-container)] items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_0.9fr] lg:px-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--slot4-accent)]">{pagesContent.auth.login.badge}</p>
-            <h1 className="mt-4 max-w-xl text-4xl font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-5xl">{pagesContent.auth.login.title}</h1>
-            <p className="mt-5 max-w-lg text-base leading-7 text-[var(--slot4-muted-text)]">{pagesContent.auth.login.description}</p>
-          </div>
-          <div className="rounded-2xl border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.08)] sm:p-9">
-            <h2 className="text-2xl font-bold tracking-[-0.01em]">{pagesContent.auth.login.formTitle}</h2>
-            <EditableLocalLoginForm />
-            <p className="mt-6 text-sm text-[var(--slot4-muted-text)]">New here? <Link href="/signup" className="font-semibold text-[var(--slot4-accent)] underline-offset-4 hover:underline">{pagesContent.auth.login.createCta}</Link></p>
-          </div>
+      <main className={dc.shell.page}>
+        <section className={`${dc.shell.section} flex min-h-[calc(100vh-12rem)] items-center py-16 sm:py-20 lg:py-24`}>
+          <EditableReveal className="mx-auto w-full max-w-xl">
+            <div className="text-center">
+              <p className={dc.type.eyebrow}>{pagesContent.auth.login.badge}</p>
+              <h1 className={`${dc.type.heroTitle} mt-5`}>{pagesContent.auth.login.title}</h1>
+              <p className={`${dc.type.body} mt-6`}>{pagesContent.auth.login.description}</p>
+            </div>
+            <div className={`${dc.surface.card} mt-10 p-8 sm:p-10`}>
+              <p className={dc.type.eyebrow}>{pagesContent.auth.login.formTitle}</p>
+              <EditableLocalLoginForm />
+              <p className={`${dc.type.body} mt-6 text-sm`}>New here? <Link href="/signup" className="font-semibold text-[var(--slot4-accent)] underline-offset-4 hover:underline">{pagesContent.auth.login.createCta}</Link></p>
+            </div>
+          </EditableReveal>
         </section>
       </main>
     </EditableSiteShell>
