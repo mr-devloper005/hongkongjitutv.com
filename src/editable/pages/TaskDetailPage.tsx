@@ -145,18 +145,6 @@ const derivedSize = (post: SitePost) => {
   }
 }
 
-const derivedSections = (post: SitePost): string[] => {
-  const content = getContent(post)
-  const raw = content.sections
-  if (Array.isArray(raw)) {
-    const items = raw.map((item) => typeof item === 'string' ? item : asText((item as Record<string, unknown>)?.title)).filter(Boolean) as string[]
-    if (items.length) return items.slice(0, 6)
-  }
-  const body = stripHtml(getBody(post))
-  const sentences = body.split(/[.!?]\s+/).filter((s) => s.length > 10 && s.length < 90)
-  return sentences.slice(0, 4)
-}
-
 export function TaskDetailView({ task, post, related, comments = [] }: { task: TaskKey; post: SitePost; related: SitePost[]; comments?: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
   return (
     <EditableSiteShell>
@@ -405,75 +393,28 @@ function PdfDetail({ post, related }: { post: SitePost; related: SitePost[] }) {
   const category = categoryOf(post, 'General')
   const pages = derivedPages(post)
   const size = derivedSize(post)
-  const sections = derivedSections(post)
-  const filename = `${(post.slug || 'reference').replace(/[^a-z0-9-]+/gi, '-')}.ref`
-  const author = post.authorName || asText(getContent(post).author) || SITE_CONFIG.name
-  const brandName = SITE_CONFIG.name.trim() || SITE_CONFIG.domain
   const lead = leadText(post)
-  const tags = Array.isArray(post.tags) ? post.tags.slice(0, 6) : []
-  const bottomAdSize = pickRandom(getSlotSizes('article-bottom'))
   return (
     <>
-      <section className="mx-auto max-w-[var(--editable-container)] px-6 py-14 sm:py-20 lg:px-12">
+      <section className="mx-auto max-w-5xl px-6 py-14 sm:py-20 lg:px-8">
         <BackLink task="pdf" />
 
-        <EditableReveal>
-          <div className="mt-10 flex flex-wrap items-center gap-2">
-            <span className={dc.badge.accentPill}>{theme.kicker}</span>
-            <span className={dc.badge.pill}>REF</span>
-            <span className={dc.badge.pill}>{category}</span>
-          </div>
-        </EditableReveal>
-
-        <EditableReveal index={1}>
-          <h1 className="editable-display mt-8 max-w-5xl text-balance font-[var(--editable-font-display)] text-[52px] font-semibold leading-[1.02] tracking-[-0.03em] text-[var(--slot4-page-text)] sm:text-[64px] lg:text-[82px]">
-            {post.title}
-          </h1>
-        </EditableReveal>
-
-        {lead ? (
-          <EditableReveal index={2}>
-            <p className="mt-10 max-w-3xl border-l-2 border-[var(--slot4-accent)] pl-6 text-[22px] font-medium leading-[1.5] text-[var(--slot4-page-text)] sm:text-[26px]">
-              {lead}
-            </p>
-          </EditableReveal>
-        ) : null}
-
-        <EditableReveal index={3}>
-          <div className="mt-10 flex flex-wrap gap-3">
-            {fileUrl ? (
-              <Link href={fileUrl} target="_blank" rel="noreferrer" className={dc.button.primary}>
-                <Download className="h-4 w-4" /> Download reference
-              </Link>
-            ) : null}
-            {fileUrl ? (
-              <Link href={fileUrl} target="_blank" rel="noreferrer" className={dc.button.secondary}>
-                Open in new tab <ExternalLink className="h-4 w-4" />
-              </Link>
-            ) : null}
-          </div>
-        </EditableReveal>
-
-        <EditableReveal index={4}>
-          <div className="mt-10 flex flex-wrap gap-2">
-            <span className={dc.badge.pill}>Pages · {pages}</span>
-            <span className={dc.badge.pill}>Size · {size}</span>
-            <span className={dc.badge.pill}>Format · REF</span>
-            <span className={dc.badge.pill}>Category · {category}</span>
-          </div>
-        </EditableReveal>
-
         {fileUrl ? (
-          <EditableReveal index={5}>
-            <div className="mt-14 overflow-hidden rounded-[24px] border border-[var(--slot4-page-text)]/10 bg-[var(--slot4-panel-bg)]">
-              <div className="flex items-center justify-between gap-3 border-b border-[var(--editable-border)] px-5 py-4">
+          <EditableReveal>
+            <div className="mt-8 overflow-hidden rounded-[24px] border border-[var(--slot4-page-text)]/10 bg-[var(--slot4-panel-bg)]">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--editable-border)] px-5 py-4">
                 <div className="flex items-center gap-3">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--slot4-accent-soft)] text-[var(--slot4-accent)]"><FileText className="h-4 w-4" /></span>
                   <span className="font-[var(--editable-font-mono)] text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--slot4-muted-text)]">Live preview</span>
                 </div>
-                <Link href={fileUrl} target="_blank" rel="noreferrer" className={dc.button.ghost}>
-                  Open in new tab <ArrowUpRight className="h-4 w-4" />
-                </Link>
+                <div className="flex flex-wrap gap-2">
+                  <Link href={fileUrl} target="_blank" rel="noreferrer" className={dc.button.ghost}>
+                    Open <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                  <Link href={fileUrl} target="_blank" rel="noreferrer" className={dc.button.primary}>
+                    <Download className="h-4 w-4" /> Download
+                  </Link>
+                </div>
               </div>
               <iframe
                 src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
@@ -484,116 +425,32 @@ function PdfDetail({ post, related }: { post: SitePost; related: SitePost[] }) {
           </EditableReveal>
         ) : null}
 
-        <div className="mt-16 grid gap-12 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <article className="min-w-0">
-            <EditableReveal>
-              <h2 className={dc.type.sectionTitle}>About this reference</h2>
-            </EditableReveal>
-            <EditableReveal index={1}>
-              <BodyContent post={post} />
-            </EditableReveal>
+        <EditableReveal index={1}>
+          <div className="mt-10 flex flex-wrap items-center gap-2">
+            <span className={dc.badge.accentPill}>{theme.kicker}</span>
+            <span className={dc.badge.pill}>{category}</span>
+            <span className={dc.badge.pill}>Pages · {pages}</span>
+            <span className={dc.badge.pill}>Size · {size}</span>
+          </div>
+        </EditableReveal>
 
-            {tags.length ? (
-              <EditableReveal index={2}>
-                <div className="mt-10 flex flex-wrap gap-2">
-                  {tags.map((t) => (
-                    <span key={t} className={dc.badge.pill}>{t}</span>
-                  ))}
-                </div>
-              </EditableReveal>
-            ) : null}
+        <EditableReveal index={2}>
+          <h1 className="editable-display mt-6 text-balance font-[var(--editable-font-display)] text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-[var(--slot4-page-text)] sm:text-5xl">
+            {post.title}
+          </h1>
+        </EditableReveal>
 
-            {fileUrl ? (
-              <EditableReveal index={3}>
-                <div className={`mt-14 flex flex-col gap-5 p-8 sm:flex-row sm:items-center sm:justify-between ${dc.surface.dark}`}>
-                  <div>
-                    <p className="font-[var(--editable-font-mono)] text-[11px] font-medium uppercase tracking-[0.18em] text-white/60">Take it offline</p>
-                    <p className="mt-2 text-sm font-semibold text-white/80">{brandName}</p>
-                    <p className="mt-2 font-[var(--editable-font-display)] text-2xl font-semibold text-white sm:text-3xl">
-                      Take the reference offline.
-                    </p>
-                  </div>
-                  <Link
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--slot4-accent-fill)] px-6 py-3 text-sm font-medium text-white transition duration-200 hover:bg-[var(--slot4-accent-hover)]"
-                  >
-                    <Download className="h-4 w-4" /> Download reference
-                  </Link>
-                </div>
-              </EditableReveal>
-            ) : null}
-
-            <EditableReveal index={4}>
-              <div className="mt-16">
-                <Ads slot="article-bottom" size={bottomAdSize} showLabel />
-              </div>
-            </EditableReveal>
-          </article>
-
-          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-            <EditableReveal>
-              <div className={`p-7 ${dc.surface.card} ${pal.shadow}`}>
-                <div className="flex items-center justify-center">
-                  <div className="flex h-[120px] w-[100px] items-center justify-center rounded-[16px] bg-[var(--slot4-accent-soft)] font-[var(--editable-font-display)] text-[96px] font-semibold leading-none tracking-[-0.05em] text-[var(--slot4-accent)]">
-                    R
-                  </div>
-                </div>
-                <p className="mt-6 truncate text-center font-[var(--editable-font-mono)] text-[12px] font-medium tracking-[0.06em] text-[var(--slot4-page-text)]">
-                  {filename}
-                </p>
-                <dl className="mt-6 divide-y divide-[var(--editable-border)] text-sm">
-                  <SidebarRow label="Category" value={category} />
-                  <SidebarRow label="Pages" value={pages} />
-                  <SidebarRow label="Size" value={size} />
-                  <SidebarRow label="Contributor" value={author} />
-                </dl>
-                {fileUrl ? (
-                  <Link
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`mt-6 w-full ${dc.button.primary}`}
-                  >
-                    <Download className="h-4 w-4" /> Download
-                  </Link>
-                ) : null}
-              </div>
-            </EditableReveal>
-
-            {sections.length ? (
-              <EditableReveal index={1}>
-                <div className={`p-7 ${dc.surface.soft}`}>
-                  <p className="font-[var(--editable-font-mono)] text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--slot4-muted-text)]">
-                    What&apos;s inside
-                  </p>
-                  <ul className="mt-4 space-y-3">
-                    {sections.map((s, idx) => (
-                      <li key={idx} className="flex gap-3 text-sm leading-6 text-[var(--slot4-page-text)]">
-                        <span className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--slot4-accent)]" />
-                        <span>{s}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </EditableReveal>
-            ) : null}
-          </aside>
-        </div>
+        {lead ? (
+          <EditableReveal index={3}>
+            <p className="mt-6 border-l-2 border-[var(--slot4-accent)] pl-5 text-lg leading-[1.6] text-[var(--slot4-page-text)]">
+              {lead}
+            </p>
+          </EditableReveal>
+        ) : null}
       </section>
 
       <PdfRelatedStrip related={related} />
     </>
-  )
-}
-
-function SidebarRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 py-3">
-      <dt className="font-[var(--editable-font-mono)] text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--slot4-muted-text)]">{label}</dt>
-      <dd className="max-w-[60%] truncate text-right text-sm font-medium text-[var(--slot4-page-text)]">{value}</dd>
-    </div>
   )
 }
 
